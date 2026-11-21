@@ -1,0 +1,181 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "NGINX 如何把请求送到正确的站点",
+    "output": ".archify/workflow-nginx-request-routing-20261121-113114/nginx-request-routing.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "legend": {
+      "mode": "hidden"
+    }
+  },
+  "lanes": [
+    {
+      "id": "ingress",
+      "label": "选择虚拟主机"
+    },
+    {
+      "id": "shop",
+      "label": "商城站点"
+    },
+    {
+      "id": "health",
+      "label": "精确路径"
+    }
+  ],
+  "mainPath": [
+    "listen",
+    "host",
+    "shop",
+    "uri",
+    "health"
+  ],
+  "nodes": [
+    {
+      "id": "listen",
+      "lane": "ingress",
+      "col": 0,
+      "type": "frontend",
+      "label": "接收 HTTP 请求",
+      "sublabel": "127.0.0.1:18080",
+      "width": 145
+    },
+    {
+      "id": "host",
+      "lane": "ingress",
+      "col": 1,
+      "type": "backend",
+      "icon": "decision",
+      "label": "匹配 Host",
+      "sublabel": "比较 server_name",
+      "width": 145
+    },
+    {
+      "id": "default",
+      "lane": "ingress",
+      "col": 2,
+      "type": "backend",
+      "label": "404 · 默认站点",
+      "sublabel": "default_server",
+      "tag": "default",
+      "width": 145
+    },
+    {
+      "id": "shop",
+      "lane": "shop",
+      "col": 1,
+      "type": "backend",
+      "label": "进入商城站点",
+      "sublabel": "shop.example.test",
+      "width": 145
+    },
+    {
+      "id": "uri",
+      "lane": "shop",
+      "col": 2,
+      "type": "backend",
+      "icon": "decision",
+      "label": "匹配 URI 路径",
+      "sublabel": "当前 server 内查找",
+      "width": 145
+    },
+    {
+      "id": "home",
+      "lane": "shop",
+      "col": 3,
+      "type": "backend",
+      "label": "200 · 通用位置",
+      "sublabel": "location /",
+      "tag": "shop-home",
+      "width": 145
+    },
+    {
+      "id": "health",
+      "lane": "health",
+      "col": 2,
+      "type": "backend",
+      "label": "200 · 健康检查",
+      "sublabel": "location = /healthz",
+      "tag": "shop-health",
+      "width": 145
+    }
+  ],
+  "edges": [
+    {
+      "from": "listen",
+      "to": "host",
+      "label": "同一监听"
+    },
+    {
+      "from": "host",
+      "to": "default",
+      "label": "未命中",
+      "role": "branch"
+    },
+    {
+      "from": "host",
+      "to": "shop",
+      "label": "命中",
+      "variant": "emphasis"
+    },
+    {
+      "from": "shop",
+      "to": "uri"
+    },
+    {
+      "from": "uri",
+      "to": "home",
+      "label": "其他路径",
+      "role": "branch"
+    },
+    {
+      "from": "uri",
+      "to": "health",
+      "label": "/healthz",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "只改变 Host",
+      "items": [
+        "访问同一个地址和端口，请求路径均使用 /healthz。",
+        "已知域名得到 shop-health，陌生域名得到 default。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "只改变路径",
+      "items": [
+        "Host 使用 shop.example.test，比较 /healthz 与 /。",
+        "前者命中精确位置，后者进入通用位置。"
+      ]
+    }
+  ],
+  "semanticChecks": {
+    "allowedRoots": [
+      "listen"
+    ],
+    "allowedTerminals": [
+      "default",
+      "home",
+      "health"
+    ],
+    "requiredPaths": [
+      {
+        "from": "listen",
+        "to": "default"
+      },
+      {
+        "from": "listen",
+        "to": "home"
+      },
+      {
+        "from": "listen",
+        "to": "health"
+      }
+    ]
+  }
+}

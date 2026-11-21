@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "一次请求会在云上走到哪一层？",
+    "output": ".archify/publish/cloud-website.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "legend": {
+      "mode": "hidden"
+    }
+  },
+  "components": [
+    {
+      "id": "dns",
+      "type": "cloud",
+      "label": "DNS 解析",
+      "sublabel": "CNAME 指向 CDN",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "user",
+      "type": "external",
+      "label": "用户浏览器",
+      "sublabel": "按解析结果建立连接",
+      "pos": [
+        40,
+        195
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "cdn",
+      "type": "cloud",
+      "label": "CDN 边缘",
+      "sublabel": "缓存命中直接响应",
+      "pos": [
+        282,
+        195
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "alb",
+      "type": "cloud",
+      "label": "应用负载均衡",
+      "sublabel": "按规则选择健康后端",
+      "pos": [
+        538,
+        195
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "app",
+      "type": "backend",
+      "label": "ECS 应用",
+      "sublabel": "处理业务请求",
+      "pos": [
+        788,
+        195
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "obj",
+      "type": "database",
+      "label": "OSS 对象存储",
+      "sublabel": "静态文件源站",
+      "pos": [
+        282,
+        362
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "cache",
+      "type": "database",
+      "label": "Tair 缓存",
+      "sublabel": "可复用的业务数据",
+      "pos": [
+        788,
+        362
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "RDS 数据库",
+      "sublabel": "业务数据的持久副本",
+      "pos": [
+        1032,
+        195
+      ],
+      "size": [
+        152,
+        64
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "user",
+      "to": "dns",
+      "label": "解析域名"
+    },
+    {
+      "from": "user",
+      "to": "cdn",
+      "label": "HTTPS"
+    },
+    {
+      "from": "cdn",
+      "to": "alb",
+      "label": "动态回源"
+    },
+    {
+      "from": "cdn",
+      "to": "obj",
+      "label": "静态回源"
+    },
+    {
+      "from": "alb",
+      "to": "app",
+      "label": "转发请求"
+    },
+    {
+      "from": "app",
+      "to": "cache",
+      "label": "查询缓存"
+    },
+    {
+      "from": "app",
+      "to": "db",
+      "label": "未命中读库"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "两个缓存",
+      "items": [
+        "CDN 按 HTTP 缓存策略复用响应。",
+        "Tair 由应用按业务键查询。"
+      ]
+    }
+  ]
+}

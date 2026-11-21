@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "用户请求和发布流程在哪里汇合？",
+    "output": ".archify/publish/release-pipeline.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "legend": {
+      "mode": "hidden"
+    }
+  },
+  "components": [
+    {
+      "id": "git",
+      "type": "backend",
+      "label": "Git 提交",
+      "sublabel": "记录完整提交号",
+      "pos": [
+        40,
+        45
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "ci",
+      "type": "backend",
+      "label": "Jenkins 构建",
+      "sublabel": "测试并构建一次",
+      "pos": [
+        283,
+        45
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "registry",
+      "type": "database",
+      "label": "镜像仓库",
+      "sublabel": "保存不可变摘要",
+      "pos": [
+        528,
+        45
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "staging",
+      "type": "backend",
+      "label": "预生产验证",
+      "sublabel": "使用指定摘要",
+      "pos": [
+        775,
+        45
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "user",
+      "type": "external",
+      "label": "用户客户端",
+      "sublabel": "访问业务域名",
+      "pos": [
+        283,
+        225
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "entry",
+      "type": "cloud",
+      "label": "业务入口",
+      "sublabel": "转发到健康实例",
+      "pos": [
+        528,
+        225
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "prod",
+      "type": "backend",
+      "label": "生产应用",
+      "sublabel": "返回构建版本",
+      "pos": [
+        775,
+        225
+      ],
+      "size": [
+        152,
+        64
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "git",
+      "to": "ci",
+      "label": "检出提交"
+    },
+    {
+      "from": "ci",
+      "to": "registry",
+      "label": "推送镜像"
+    },
+    {
+      "from": "registry",
+      "to": "staging",
+      "label": "拉取制品"
+    },
+    {
+      "from": "staging",
+      "to": "prod",
+      "label": "验证后发布"
+    },
+    {
+      "from": "user",
+      "to": "entry",
+      "label": "HTTPS"
+    },
+    {
+      "from": "entry",
+      "to": "prod",
+      "label": "业务请求"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "版本证据",
+      "items": [
+        "构建记录关联 Git 提交号和镜像摘要。",
+        "用实际请求的版本响应核对发布结果。"
+      ]
+    }
+  ]
+}

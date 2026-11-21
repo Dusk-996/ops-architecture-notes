@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "LVS-DR 请求转发与直接回包",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "output": ".archify/publish/lvs-direct-routing.html",
+    "legend": {
+      "mode": "hidden"
+    }
+  },
+  "participants": [
+    {
+      "id": "client",
+      "type": "external",
+      "label": "客户端",
+      "sublabel": "远端客户端 CIP"
+    },
+    {
+      "id": "gw",
+      "type": "cloud",
+      "label": "入口网关",
+      "sublabel": "连接服务网段"
+    },
+    {
+      "id": "director",
+      "type": "frontend",
+      "label": "活动调度器",
+      "sublabel": "持有 VIP"
+    },
+    {
+      "id": "rs",
+      "type": "backend",
+      "label": "真实服务器",
+      "sublabel": "本地配置 VIP"
+    }
+  ],
+  "messages": [
+    {
+      "id": "req",
+      "from": "client",
+      "to": "gw",
+      "y": 165,
+      "label": "请求 VIP",
+      "note": "IP：CIP → VIP"
+    },
+    {
+      "id": "vip-arp",
+      "from": "director",
+      "to": "gw",
+      "y": 245,
+      "label": "应答 VIP 的 ARP",
+      "note": "邻居缓存未命中时，只有活动调度器应答。",
+      "variant": "return"
+    },
+    {
+      "id": "in",
+      "from": "gw",
+      "to": "director",
+      "y": 325,
+      "label": "转发请求",
+      "note": "帧送到调度器 MAC；目标 IP 仍为 VIP。",
+      "variant": "emphasis"
+    },
+    {
+      "id": "to-rs",
+      "from": "director",
+      "to": "rs",
+      "y": 405,
+      "label": "转发给选定后端",
+      "note": "同一二层网段，目标 MAC 改为 RS 的 MAC。",
+      "variant": "emphasis"
+    },
+    {
+      "id": "return",
+      "from": "rs",
+      "to": "gw",
+      "y": 495,
+      "label": "响应直接出网关",
+      "note": "IP：VIP → CIP，回程绕过调度器。",
+      "variant": "return"
+    },
+    {
+      "id": "delivered",
+      "from": "gw",
+      "to": "client",
+      "y": 575,
+      "label": "响应送达",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "链路前提",
+      "items": [
+        "本图为跨网段客户端、IPv4 以太网和经典 DR。调度器与后端位于同一二层网络。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "两处抓包",
+      "items": [
+        "对照调度器和同一后端的网卡，按四元组与 TCP 序号匹配同一连接。"
+      ]
+    }
+  ]
+}

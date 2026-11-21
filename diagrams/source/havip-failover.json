@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "同一可用区内，HaVip 如何从主机切到备机？",
+    "output": ".archify/publish/havip-failover.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "legend": {
+      "mode": "hidden"
+    }
+  },
+  "components": [
+    {
+      "id": "probe",
+      "type": "external",
+      "label": "VPC 内客户端",
+      "sublabel": "访问同一服务地址",
+      "pos": [
+        40,
+        90
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "vip",
+      "type": "cloud",
+      "label": "HaVip 服务地址",
+      "sublabel": "绑定两台 ECS",
+      "pos": [
+        320,
+        90
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "primary",
+      "type": "backend",
+      "label": "ECS A · 当前主",
+      "sublabel": "Keepalived + 应用",
+      "pos": [
+        602,
+        90
+      ],
+      "size": [
+        152,
+        64
+      ]
+    },
+    {
+      "id": "standby",
+      "type": "backend",
+      "label": "ECS B · 当前备",
+      "sublabel": "Keepalived + 应用",
+      "pos": [
+        602,
+        292
+      ],
+      "size": [
+        152,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "可用区 A · 同一交换机（vSwitch）",
+      "wraps": [
+        "vip",
+        "primary",
+        "standby"
+      ],
+      "pad": 24
+    }
+  ],
+  "connections": [
+    {
+      "from": "probe",
+      "to": "vip",
+      "label": "访问业务"
+    },
+    {
+      "from": "vip",
+      "to": "primary",
+      "label": "稳态到主"
+    },
+    {
+      "from": "primary",
+      "to": "standby",
+      "label": "单播 VRRP"
+    },
+    {
+      "from": "vip",
+      "to": "standby",
+      "label": "接管后到备",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          396,
+          324
+        ]
+      ],
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "切换范围",
+      "items": [
+        "单机失效时，由同一可用区内的备机接管服务地址。",
+        "整个可用区失效时，该组主备同时受影响。"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "从单机到缓存，什么瓶颈驱动下一步？",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "output": ".archify/publish/website-evolution.html",
+    "legend": {
+      "mode": "hidden"
+    }
+  },
+  "lanes": [
+    {
+      "id": "topology",
+      "label": "部署形态"
+    },
+    {
+      "id": "cache",
+      "label": "热点读取"
+    },
+    {
+      "id": "transfer",
+      "label": "响应传输"
+    }
+  ],
+  "mainPath": [
+    "single",
+    "split",
+    "pool",
+    "cache",
+    "miss",
+    "buffer"
+  ],
+  "nodes": [
+    {
+      "id": "single",
+      "lane": "topology",
+      "col": 0,
+      "type": "backend",
+      "icon": "none",
+      "label": "单机运行",
+      "sublabel": "Web 与数据库同机",
+      "width": 145
+    },
+    {
+      "id": "split",
+      "lane": "topology",
+      "col": 1,
+      "type": "database",
+      "icon": "none",
+      "label": "独立数据库",
+      "sublabel": "Web 与 DB 分机",
+      "width": 145
+    },
+    {
+      "id": "pool",
+      "lane": "topology",
+      "col": 2,
+      "type": "backend",
+      "icon": "none",
+      "label": "应用集群",
+      "sublabel": "负载均衡分发请求",
+      "width": 145
+    },
+    {
+      "id": "cache",
+      "lane": "cache",
+      "col": 2,
+      "type": "backend",
+      "icon": "none",
+      "label": "查询缓存",
+      "sublabel": "按缓存键查找响应",
+      "width": 145
+    },
+    {
+      "id": "hit",
+      "lane": "cache",
+      "col": 1,
+      "type": "frontend",
+      "icon": "none",
+      "label": "复用已存响应",
+      "sublabel": "本次免回源",
+      "width": 145
+    },
+    {
+      "id": "miss",
+      "lane": "cache",
+      "col": 3,
+      "type": "backend",
+      "icon": "none",
+      "label": "请求源站",
+      "sublabel": "可缓存响应按规则存储",
+      "width": 145
+    },
+    {
+      "id": "buffer",
+      "lane": "transfer",
+      "col": 3,
+      "type": "frontend",
+      "icon": "none",
+      "label": "缓冲当前响应",
+      "sublabel": "平衡两端传输速率",
+      "width": 145
+    }
+  ],
+  "edges": [
+    {
+      "from": "single",
+      "to": "split",
+      "label": "资源争用"
+    },
+    {
+      "from": "split",
+      "to": "pool",
+      "label": "应用排队"
+    },
+    {
+      "from": "pool",
+      "to": "cache",
+      "label": "重复读多"
+    },
+    {
+      "from": "cache",
+      "to": "hit",
+      "label": "命中",
+      "variant": "emphasis"
+    },
+    {
+      "from": "cache",
+      "to": "miss",
+      "label": "未命中"
+    },
+    {
+      "from": "miss",
+      "to": "buffer",
+      "label": "启用缓冲"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "比较条件",
+      "items": [
+        "选择相近的请求速率、路由和资源版本，对比 P95、错误率和源站请求数。"
+      ]
+    }
+  ]
+}

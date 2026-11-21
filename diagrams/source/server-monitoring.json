@@ -1,0 +1,145 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "网站访问慢，怎样对齐用户与服务端证据？",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "output": ".archify/publish/server-monitoring.html",
+    "legend": {
+      "mode": "hidden"
+    }
+  },
+  "lanes": [
+    {
+      "id": "probe",
+      "label": "用户侧探测"
+    },
+    {
+      "id": "incident",
+      "label": "同一故障窗口"
+    },
+    {
+      "id": "host",
+      "label": "主机与设备"
+    }
+  ],
+  "mainPath": [
+    "dns",
+    "connect",
+    "http",
+    "window",
+    "hypothesis"
+  ],
+  "nodes": [
+    {
+      "id": "dns",
+      "lane": "probe",
+      "col": 0,
+      "type": "external",
+      "icon": "none",
+      "label": "解析域名",
+      "sublabel": "记录探测地区和 IP",
+      "width": 145
+    },
+    {
+      "id": "connect",
+      "lane": "probe",
+      "col": 1,
+      "type": "external",
+      "icon": "none",
+      "label": "建立连接",
+      "sublabel": "拆分 TCP 与 TLS",
+      "width": 145
+    },
+    {
+      "id": "http",
+      "lane": "probe",
+      "col": 2,
+      "type": "frontend",
+      "icon": "none",
+      "label": "收到响应",
+      "sublabel": "HTTP 状态与首字节",
+      "width": 145
+    },
+    {
+      "id": "gateway",
+      "lane": "incident",
+      "col": 1,
+      "type": "backend",
+      "icon": "none",
+      "label": "网关与应用",
+      "sublabel": "总耗时和上游耗时",
+      "width": 145
+    },
+    {
+      "id": "window",
+      "lane": "incident",
+      "col": 2,
+      "type": "backend",
+      "icon": "none",
+      "label": "合并观测",
+      "sublabel": "同五分钟、同服务与实例",
+      "width": 145
+    },
+    {
+      "id": "hypothesis",
+      "lane": "incident",
+      "col": 3,
+      "type": "backend",
+      "icon": "none",
+      "label": "缩小范围",
+      "sublabel": "复测受影响的路径",
+      "width": 145
+    },
+    {
+      "id": "machine",
+      "lane": "host",
+      "col": 2,
+      "type": "database",
+      "icon": "none",
+      "label": "主机与设备",
+      "sublabel": "CPU、磁盘、网口与丢包",
+      "width": 145
+    }
+  ],
+  "edges": [
+    {
+      "from": "dns",
+      "to": "connect"
+    },
+    {
+      "from": "connect",
+      "to": "http"
+    },
+    {
+      "from": "http",
+      "to": "window",
+      "label": "用户体验"
+    },
+    {
+      "from": "gateway",
+      "to": "window",
+      "label": "请求日志"
+    },
+    {
+      "from": "machine",
+      "to": "window",
+      "label": "资源指标"
+    },
+    {
+      "from": "window",
+      "to": "hypothesis",
+      "label": "对照"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "正确的比较对象",
+      "items": [
+        "先确定同一故障窗口；以受影响地区和一个正常地区作对照。"
+      ]
+    }
+  ]
+}

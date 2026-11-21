@@ -1,0 +1,149 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Java 服务高负载的取证顺序",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "output": ".archify/publish/java-high-load.html",
+    "legend": {
+      "mode": "hidden"
+    }
+  },
+  "lanes": [
+    {
+      "id": "compute",
+      "label": "CPU 竞争"
+    },
+    {
+      "id": "samples",
+      "label": "对齐采样窗口"
+    },
+    {
+      "id": "wait",
+      "label": "不可中断等待"
+    }
+  ],
+  "mainPath": [
+    "symptom",
+    "host",
+    "runnable",
+    "threads",
+    "stack"
+  ],
+  "nodes": [
+    {
+      "id": "symptom",
+      "lane": "samples",
+      "col": 0,
+      "type": "external",
+      "label": "请求变慢",
+      "sublabel": "记录时段和实例",
+      "width": 132
+    },
+    {
+      "id": "host",
+      "lane": "samples",
+      "col": 1,
+      "type": "frontend",
+      "label": "观察系统负载",
+      "sublabel": "vmstat 与线程状态",
+      "width": 132
+    },
+    {
+      "id": "runnable",
+      "lane": "compute",
+      "col": 1,
+      "type": "backend",
+      "label": "排队与 CPU 忙",
+      "sublabel": "持续看 r、us、sy",
+      "width": 132
+    },
+    {
+      "id": "threads",
+      "lane": "compute",
+      "col": 2,
+      "type": "backend",
+      "label": "定位热线程",
+      "sublabel": "记录 PID 与 TID",
+      "width": 132
+    },
+    {
+      "id": "stack",
+      "lane": "compute",
+      "col": 3,
+      "type": "backend",
+      "label": "比对多次栈",
+      "sublabel": "十六进制 nid",
+      "width": 132
+    },
+    {
+      "id": "blocked",
+      "lane": "wait",
+      "col": 1,
+      "type": "backend",
+      "label": "定位 D 状态",
+      "sublabel": "按 wchan 查等待点",
+      "width": 132
+    },
+    {
+      "id": "storage",
+      "lane": "wait",
+      "col": 2,
+      "type": "backend",
+      "label": "核对依赖延迟",
+      "sublabel": "块设备或远端存储",
+      "width": 132
+    }
+  ],
+  "edges": [
+    {
+      "from": "symptom",
+      "to": "host"
+    },
+    {
+      "from": "host",
+      "to": "runnable",
+      "label": "r 持续高",
+      "variant": "emphasis"
+    },
+    {
+      "from": "runnable",
+      "to": "threads",
+      "variant": "emphasis"
+    },
+    {
+      "from": "threads",
+      "to": "stack",
+      "variant": "emphasis"
+    },
+    {
+      "from": "host",
+      "to": "blocked",
+      "label": "D 增多",
+      "role": "branch",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "from": "blocked",
+      "to": "storage"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "同一时间窗",
+      "items": [
+        "主机负载和 JVM 进程指标来自不同范围，先核对采样时段、实例和 CPU 配额。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "堆转储条件",
+      "items": [
+        "只有内存曲线、GC 日志等证据指向堆问题时，才评估高影响堆转储。"
+      ]
+    }
+  ]
+}
